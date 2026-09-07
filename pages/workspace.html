@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; script-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>Workspace: project</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-header-inner">
+      <a class="back-link" href="../index.html">&larr; All projects</a>
+      <h1 id="project-title" class="project-title" title="Click to rename"></h1>
+      <div class="layout-switcher" role="group" aria-label="Pane layout">
+        <button type="button" class="layout-btn" data-count="1">1 pane</button>
+        <button type="button" class="layout-btn" data-count="2">2 panes</button>
+        <button type="button" class="layout-btn" data-count="3">3 panes</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="panes" class="panes panes--1"></div>
+  </main>
+
+  <script src="../js/store.js"></script>
+  <script src="../js/sanitize.js"></script>
+  <script src="../js/editors/doc-editor.js"></script>
+  <script src="../js/editors/sheet-editor.js"></script>
+  <script src="../js/editors/checklist-editor.js"></script>
+  <script src="../js/workspace.js"></script>
+</body>
+</html>

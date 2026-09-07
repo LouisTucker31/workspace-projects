@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; script-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>Workspace: your projects</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-header-inner">
+      <span class="app-mark">Workspace</span>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <div class="dashboard-intro">
+      <h1>Your projects</h1>
+      <p>Each project holds its own documents, spreadsheets and checklists, all in one place.</p>
+    </div>
+
+    <form id="new-project-form" class="new-project-form">
+      <label for="new-project-name" class="visually-hidden">Project name</label>
+      <input type="text" id="new-project-name" placeholder="Name a new project, e.g. Excyte Live: Warwick 2026" maxlength="100" required />
+      <button type="submit">Create project</button>
+    </form>
+
+    <div class="data-transfer-actions">
+      <button type="button" id="export-data-btn">Export all data</button>
+      <button type="button" id="import-data-btn">Import data</button>
+      <input type="file" id="import-data-input" accept="application/json" hidden />
+    </div>
+
+    <section id="project-grid" class="project-grid" aria-label="Projects"></section>
+
+    <p id="empty-state" class="empty-state" hidden>No projects yet. Create your first one above.</p>
+  </main>
+
+  <script src="js/store.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
