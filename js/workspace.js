@@ -405,56 +405,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const body = panesEl.querySelector('.doc-list-body');
 
+    function buildRow(doc) {
+      const li = document.createElement('li');
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'doc-list-row';
+
+      const dot = document.createElement('span');
+      dot.className = 'doc-list-row-type';
+      dot.style.background = typeColor(doc.type);
+      row.appendChild(dot);
+
+      const title = document.createElement('span');
+      title.className = 'doc-list-row-title';
+      title.textContent = doc.title;
+      row.appendChild(title);
+
+      if (doc.type === 'link') {
+        const external = document.createElement('span');
+        external.className = 'doc-list-row-external';
+        external.textContent = 'Opens in a new tab ↗';
+        row.appendChild(external);
+      }
+
+      const meta = document.createElement('span');
+      meta.className = 'doc-list-row-meta';
+      meta.textContent = `Updated ${formatUpdated(doc.updatedAt)}`;
+      row.appendChild(meta);
+
+      row.addEventListener('click', () => {
+        if (doc.type === 'link') {
+          window.open(doc.content.url, '_blank', 'noopener');
+          return;
+        }
+        assignPane(0, doc.id);
+        layoutButtons.forEach((btn) => btn.classList.toggle('active', Number(btn.dataset.count) === project.layout));
+        renderPanes();
+      });
+
+      li.appendChild(row);
+      return li;
+    }
+
+    function buildGroup(heading, docs) {
+      if (docs.length === 0) return null;
+      const section = document.createElement('div');
+      section.className = 'doc-list-group';
+      const h3 = document.createElement('h3');
+      h3.className = 'doc-list-group-heading';
+      h3.textContent = heading;
+      section.appendChild(h3);
+      const list = document.createElement('ul');
+      list.className = 'doc-list';
+      docs.forEach((doc) => list.appendChild(buildRow(doc)));
+      section.appendChild(list);
+      return section;
+    }
+
     function renderRows() {
       body.innerHTML = '';
       if (project.documents.length === 0) {
         body.innerHTML = '<p class="doc-list-empty">No documents yet. Add an external link or create a new document above.</p>';
         return;
       }
-      const list = document.createElement('ul');
-      list.className = 'doc-list';
-      project.documents.forEach((doc) => {
-        const li = document.createElement('li');
-        const row = document.createElement('button');
-        row.type = 'button';
-        row.className = 'doc-list-row';
+      const internalDocs = project.documents.filter((doc) => doc.type !== 'link');
+      const linkDocs = project.documents.filter((doc) => doc.type === 'link');
 
-        const dot = document.createElement('span');
-        dot.className = 'doc-list-row-type';
-        dot.style.background = typeColor(doc.type);
-        row.appendChild(dot);
-
-        const title = document.createElement('span');
-        title.className = 'doc-list-row-title';
-        title.textContent = doc.title;
-        row.appendChild(title);
-
-        if (doc.type === 'link') {
-          const external = document.createElement('span');
-          external.className = 'doc-list-row-external';
-          external.textContent = 'Opens in a new tab ↗';
-          row.appendChild(external);
-        }
-
-        const meta = document.createElement('span');
-        meta.className = 'doc-list-row-meta';
-        meta.textContent = `Updated ${formatUpdated(doc.updatedAt)}`;
-        row.appendChild(meta);
-
-        row.addEventListener('click', () => {
-          if (doc.type === 'link') {
-            window.open(doc.content.url, '_blank', 'noopener');
-            return;
-          }
-          assignPane(0, doc.id);
-          layoutButtons.forEach((btn) => btn.classList.toggle('active', Number(btn.dataset.count) === project.layout));
-          renderPanes();
-        });
-
-        li.appendChild(row);
-        list.appendChild(li);
-      });
-      body.appendChild(list);
+      const internalGroup = buildGroup('Documents', internalDocs);
+      if (internalGroup) body.appendChild(internalGroup);
+      const linkGroup = buildGroup('External links', linkDocs);
+      if (linkGroup) body.appendChild(linkGroup);
     }
 
     panesEl.querySelector('.add-link-btn').addEventListener('click', () => {
