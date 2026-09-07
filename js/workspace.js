@@ -165,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="pane-header">
           <select class="pane-select"></select>
           <div class="pane-header-actions"></div>
+          <button type="button" class="pane-close" title="Close pane" aria-label="Close pane">&times;</button>
         </div>
         <div class="pane-body"></div>
       `;
@@ -172,6 +173,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const select = pane.querySelector('.pane-select');
       const actions = pane.querySelector('.pane-header-actions');
       const body = pane.querySelector('.pane-body');
+      const closeBtn = pane.querySelector('.pane-close');
+
+      closeBtn.addEventListener('click', () => {
+        if (project.layout <= 1) {
+          window.location.href = '../index.html';
+          return;
+        }
+        project.paneAssignments.splice(i, 1);
+        project.paneAssignments.push(null);
+        project.layout -= 1;
+        Store.updateLayout(project.id, project.layout, project.paneAssignments);
+        layoutButtons.forEach((btn) => btn.classList.toggle('active', Number(btn.dataset.count) === project.layout));
+        renderPanes();
+      });
 
       function rebuildSelect() {
         select.innerHTML = '<option value="">Choose a document...</option>';

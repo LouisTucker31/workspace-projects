@@ -275,6 +275,15 @@ body:has(#panes) main {
 .pane-header-actions { display: flex; gap: var(--space-1); }
 .pane-action { padding: 0 var(--space-2); }
 .pane-action-danger:hover { border-color: var(--danger); color: var(--danger); }
+.pane-close {
+  width: 31px;
+  padding: 0 !important;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  flex: 0 0 auto;
+}
+.pane-close:hover { border-color: var(--danger); color: var(--danger); }
 .pane-body { flex: 1; overflow: auto; padding: var(--space-3); }
 .pane-empty { color: var(--ink-soft); padding: var(--space-3) 0; }
 
