@@ -1,4 +1,4 @@
-/*
+﻿/*
   Turns a document/sheet/checklist's stored content into a real .docx/.xlsx
   file the user can download, using the vendored `docx` and `xlsx-js-style`
   libraries (js/vendor/). Generation is fully client-side - nothing here
@@ -92,6 +92,13 @@ function htmlToDocxParagraphs(html) {
 
 function buildDocxDocument(paragraphs) {
   return new docx.Document({
+    styles: {
+      default: {
+        document: {
+          run: { font: 'Calibri', size: 22 }, // 22 half-points = 11pt, Word's own default
+        },
+      },
+    },
     numbering: {
       config: [{
         reference: EXPORT_NUMBERING_REFERENCE,
@@ -112,7 +119,10 @@ async function exportDocumentToDocx(doc) {
 async function exportChecklistToDocx(doc) {
   const paragraphs = [];
   (doc.content.items || []).forEach((item) => {
-    const prefix = item.checked ? '☑ ' : '☐ ';
+    // Plain ASCII, not Unicode checkbox glyphs (\u2611/\u2610) - the vendored
+    // docx library corrupts multi-byte characters when writing the zip, this
+    // sidesteps that bug entirely and still reads clearly in Word.
+    const prefix = item.checked ? '[x] ' : '[ ] ';
     const wrapper = document.createElement('p');
     wrapper.innerHTML = item.html || item.text || '';
     const runs = [new docx.TextRun({ text: prefix }), ...htmlNodeToRuns(wrapper, {})];
