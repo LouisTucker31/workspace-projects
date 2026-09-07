@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Store.updateLayout(project.id, project.layout, project.paneAssignments);
   }
 
-  function openNewDocumentDialog(onCreate, fixedType) {
+  function openNewDocumentDialog(onCreate, fixedType, prefill) {
     const dialog = document.createElement('dialog');
     dialog.className = 'app-dialog';
     dialog.innerHTML = `
@@ -142,6 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
     syncUrlRow();
     typeSelect.addEventListener('change', syncUrlRow);
 
+    const titleInput = dialog.querySelector('.new-doc-title');
+    if (prefill && prefill.title) titleInput.value = prefill.title;
+    if (prefill && prefill.url) urlInput.value = prefill.url;
+
     dialog.querySelector('.cancel').addEventListener('click', () => dialog.close());
     dialog.addEventListener('close', () => dialog.remove());
     dialog.querySelector('form').addEventListener('submit', () => {
@@ -170,9 +174,76 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     dialog.showModal();
+    if (prefill && prefill.title) urlInput.focus(); else titleInput.select();
   }
 
+  let currentView = 'panes';
+  function refreshCurrentView() {
+    if (currentView === 'list') renderDocumentsList();
+    else renderPanes();
+  }
+
+  function stripFileExtension(name) {
+    const dot = name.lastIndexOf('.');
+    return dot > 0 ? name.slice(0, dot) : name;
+  }
+
+  // Lets you drag a file (from File Explorer) or a link (from a browser
+  // tab/address bar) onto any part of the workspace to add it as an
+  // external link. We never get real file bytes here (no backend to store
+  // them), so a dropped file just seeds the title from its filename and the
+  // person pastes the real, already-hosted URL (SharePoint, Drive, etc.);
+  // a dropped browser link/URL fills in both fields automatically.
+  function handleWorkspaceDrop(e) {
+    const dt = e.dataTransfer;
+    if (!dt) return;
+
+    const onLinkAdded = (doc) => {
+      project.documents.push(doc);
+      refreshCurrentView();
+    };
+
+    if (dt.files && dt.files.length > 0) {
+      const file = dt.files[0];
+      openNewDocumentDialog(onLinkAdded, 'link', { title: stripFileExtension(file.name) });
+      return;
+    }
+
+    const url = dt.getData('text/uri-list') || dt.getData('text/plain');
+    if (url && /^https?:\/\//i.test(url.trim())) {
+      openNewDocumentDialog(onLinkAdded, 'link', { url: url.trim() });
+    }
+  }
+
+  // Only Files/text/uri-list count as an "external drop" - text/plain is
+  // deliberately excluded here because the checklist editor's own
+  // drag-to-reorder also uses text/plain, and treating that as an external
+  // drop would flash the overlay/dialog during in-page reordering.
+  function isExternalDrag(dt) {
+    return !!dt && (dt.types.includes('Files') || dt.types.includes('text/uri-list'));
+  }
+
+  document.addEventListener('dragover', (e) => {
+    if (isExternalDrag(e.dataTransfer)) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      document.body.classList.add('drag-active');
+    }
+  });
+  document.addEventListener('dragleave', (e) => {
+    if (e.target === document.documentElement || !e.relatedTarget) {
+      document.body.classList.remove('drag-active');
+    }
+  });
+  document.addEventListener('drop', (e) => {
+    if (!isExternalDrag(e.dataTransfer)) return;
+    e.preventDefault();
+    document.body.classList.remove('drag-active');
+    handleWorkspaceDrop(e);
+  });
+
   function renderPanes() {
+    currentView = 'panes';
     panesEl.className = `panes panes--${project.layout}`;
     panesEl.innerHTML = '';
     const paneCount = project.layout;
@@ -317,6 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderDocumentsList() {
+    currentView = 'list';
     panesEl.className = 'panes panes--1';
     panesEl.innerHTML = `
       <div class="doc-list-view">
