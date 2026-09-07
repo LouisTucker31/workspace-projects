@@ -31,6 +31,9 @@ function mountSheetEditor(container, projectId, docId) {
           <button type="button" class="del-col" title="Delete column">
             <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="6.5" y="2.5" width="7" height="15" rx="1"/><path d="M10 6.5v7"/></svg>
           </button>
+          <button type="button" class="download-btn" title="Download as Excel file">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M6 9.5 10 13.5 14 9.5"/><path d="M4 16h12"/></svg>
+          </button>
         </div>
       </div>
       <div class="sheet-scroll">
@@ -248,6 +251,10 @@ function mountSheetEditor(container, projectId, docId) {
     activeCell.col = Math.max(0, activeCell.col - 1);
     render();
     save();
+  });
+  container.querySelector('.download-btn').addEventListener('click', async () => {
+    const { blob, filename } = await exportSheetToXlsx(doc);
+    triggerDownload(blob, filename);
   });
 
   render();

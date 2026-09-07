@@ -18,6 +18,11 @@ function mountDocEditor(container, projectId, docId) {
           <button type="button" data-cmd="insertUnorderedList" title="Bullet list">&bull;</button>
           <button type="button" data-cmd="insertOrderedList" title="Numbered list">1.</button>
         </div>
+        <div class="tb-group tb-push-right">
+          <button type="button" class="download-btn" title="Download as Word document">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M6 9.5 10 13.5 14 9.5"/><path d="M4 16h12"/></svg>
+          </button>
+        </div>
       </div>
       <div class="doc-body" contenteditable="true" spellcheck="true" lang="en-GB"></div>
     </div>
@@ -64,5 +69,15 @@ function mountDocEditor(container, projectId, docId) {
       syncToolbar();
       scheduleSave();
     });
+  });
+
+  container.querySelector('.download-btn').addEventListener('click', async () => {
+    // Read the live DOM, not doc.content.html, so an unsaved keystroke
+    // (still waiting on the debounced autosave) is included in the export.
+    const { blob, filename } = await exportDocumentToDocx({
+      title: doc.title,
+      content: { html: sanitizeHtml(body.innerHTML) },
+    });
+    triggerDownload(blob, filename);
   });
 }

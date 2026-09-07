@@ -16,6 +16,11 @@ function mountChecklistEditor(container, projectId, docId) {
     <div class="checklist-editor">
       <div class="editor-toolbar" role="toolbar" aria-label="Text formatting">
         ${formatButtonsHtml()}
+        <div class="tb-group tb-push-right">
+          <button type="button" class="download-btn" title="Download as Word document">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M6 9.5 10 13.5 14 9.5"/><path d="M4 16h12"/></svg>
+          </button>
+        </div>
       </div>
       <ul class="checklist-items"></ul>
       <p class="checklist-progress"></p>
@@ -217,6 +222,11 @@ function mountChecklistEditor(container, projectId, docId) {
       alignRowHeights();
       syncToolbar();
     });
+  });
+
+  container.querySelector('.download-btn').addEventListener('click', async () => {
+    const { blob, filename } = await exportChecklistToDocx(doc);
+    triggerDownload(blob, filename);
   });
 
   render();
