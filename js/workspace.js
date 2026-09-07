@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const titleEl = document.getElementById('project-title');
   const panesEl = document.getElementById('panes');
   const layoutButtons = document.querySelectorAll('.layout-btn');
+  const allDocumentsBtn = document.getElementById('all-documents-btn');
 
   if (!project) {
     document.querySelector('main').innerHTML = '<p class="pane-empty">This project could not be found. <a href="../index.html">Back to dashboard</a></p>';
@@ -64,11 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function typeColor(type) {
     if (type === 'document') return 'var(--type-document)';
     if (type === 'sheet') return 'var(--type-sheet)';
+    if (type === 'link') return 'var(--type-link)';
     return 'var(--type-checklist)';
   }
 
   function docOptionLabel(doc) {
-    return `• ${doc.title}`;
+    return doc.type === 'link' ? `↗ ${doc.title}` : `• ${doc.title}`;
   }
 
   function styleOption(opt, doc) {
@@ -110,7 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="document">Document</option>
             <option value="sheet">Spreadsheet</option>
             <option value="checklist">Checklist</option>
+            <option value="link">Link (external file)</option>
           </select>
+        </label>
+        <label class="new-doc-url-row" hidden>Link URL
+          <input type="url" class="new-doc-url" placeholder="https://..." />
         </label>
         <div class="dialog-actions">
           <button type="button" class="cancel">Cancel</button>
@@ -121,10 +127,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(dialog);
 
     const typeSelect = dialog.querySelector('.new-doc-type');
+    const urlRow = dialog.querySelector('.new-doc-url-row');
+    const urlInput = dialog.querySelector('.new-doc-url');
     if (fixedType) {
       typeSelect.value = fixedType;
       dialog.querySelector('.new-doc-type-row').hidden = true;
     }
+
+    function syncUrlRow() {
+      const isLink = typeSelect.value === 'link';
+      urlRow.hidden = !isLink;
+      urlInput.required = isLink;
+    }
+    syncUrlRow();
+    typeSelect.addEventListener('change', syncUrlRow);
 
     dialog.querySelector('.cancel').addEventListener('click', () => dialog.close());
     dialog.addEventListener('close', () => dialog.remove());
@@ -142,6 +158,10 @@ document.addEventListener('DOMContentLoaded', () => {
           grid.push(new Array(cols).fill(null).map(() => ({ text: '', bold: false, italic: false, underline: false })));
         }
         content = { rows: grid, colWidths: new Array(cols).fill(120) };
+      } else if (type === 'link') {
+        const url = urlInput.value.trim();
+        if (!url) return;
+        content = { url };
       } else {
         content = { items: [] };
       }
@@ -265,10 +285,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (select.value === '__new__') {
           openNewDocumentDialog((doc) => {
             project.documents.push(doc);
+            allRebuildSelects.forEach((rebuild) => rebuild());
+            if (doc.type === 'link') {
+              window.open(doc.content.url, '_blank', 'noopener');
+              select.value = project.paneAssignments[i] || '';
+              return;
+            }
             assignPane(i, doc.id);
             loadPane(doc.id);
-            allRebuildSelects.forEach((rebuild) => rebuild());
           });
+          select.value = project.paneAssignments[i] || '';
+          return;
+        }
+        const chosen = project.documents.find((d) => d.id === select.value);
+        if (chosen && chosen.type === 'link') {
+          window.open(chosen.content.url, '_blank', 'noopener');
           select.value = project.paneAssignments[i] || '';
           return;
         }
@@ -280,10 +311,117 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function formatUpdated(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function renderDocumentsList() {
+    panesEl.className = 'panes panes--1';
+    panesEl.innerHTML = `
+      <div class="doc-list-view">
+        <div class="doc-list-header">
+          <h2>All documents</h2>
+          <div class="doc-list-actions">
+            <button type="button" class="add-link-btn">Add external link</button>
+            <button type="button" class="add-doc-btn">New document</button>
+          </div>
+        </div>
+        <div class="doc-list-body"></div>
+      </div>
+    `;
+
+    const body = panesEl.querySelector('.doc-list-body');
+
+    function renderRows() {
+      body.innerHTML = '';
+      if (project.documents.length === 0) {
+        body.innerHTML = '<p class="doc-list-empty">No documents yet. Add an external link or create a new document above.</p>';
+        return;
+      }
+      const list = document.createElement('ul');
+      list.className = 'doc-list';
+      project.documents.forEach((doc) => {
+        const li = document.createElement('li');
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'doc-list-row';
+
+        const dot = document.createElement('span');
+        dot.className = 'doc-list-row-type';
+        dot.style.background = typeColor(doc.type);
+        row.appendChild(dot);
+
+        const title = document.createElement('span');
+        title.className = 'doc-list-row-title';
+        title.textContent = doc.title;
+        row.appendChild(title);
+
+        if (doc.type === 'link') {
+          const external = document.createElement('span');
+          external.className = 'doc-list-row-external';
+          external.textContent = 'Opens in a new tab ↗';
+          row.appendChild(external);
+        }
+
+        const meta = document.createElement('span');
+        meta.className = 'doc-list-row-meta';
+        meta.textContent = `Updated ${formatUpdated(doc.updatedAt)}`;
+        row.appendChild(meta);
+
+        row.addEventListener('click', () => {
+          if (doc.type === 'link') {
+            window.open(doc.content.url, '_blank', 'noopener');
+            return;
+          }
+          assignPane(0, doc.id);
+          layoutButtons.forEach((btn) => btn.classList.toggle('active', Number(btn.dataset.count) === project.layout));
+          renderPanes();
+        });
+
+        li.appendChild(row);
+        list.appendChild(li);
+      });
+      body.appendChild(list);
+    }
+
+    panesEl.querySelector('.add-link-btn').addEventListener('click', () => {
+      openNewDocumentDialog((doc) => {
+        project.documents.push(doc);
+        renderRows();
+      }, 'link');
+    });
+
+    panesEl.querySelector('.add-doc-btn').addEventListener('click', () => {
+      openNewDocumentDialog((doc) => {
+        project.documents.push(doc);
+        if (doc.type === 'link') {
+          renderRows();
+          return;
+        }
+        assignPane(0, doc.id);
+        layoutButtons.forEach((btn) => btn.classList.toggle('active', Number(btn.dataset.count) === project.layout));
+        renderPanes();
+      });
+    });
+
+    renderRows();
+  }
+
+  allDocumentsBtn.addEventListener('click', () => {
+    renderDocumentsList();
+  });
+
   layoutButtons.forEach((btn) => {
     btn.addEventListener('click', () => setLayout(Number(btn.dataset.count)));
   });
 
   layoutButtons.forEach((btn) => btn.classList.toggle('active', Number(btn.dataset.count) === project.layout));
-  renderPanes();
+
+  const hasOpenPane = project.paneAssignments.slice(0, project.layout).some((id) => id);
+  if (hasOpenPane) {
+    renderPanes();
+  } else {
+    renderDocumentsList();
+  }
 });

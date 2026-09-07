@@ -15,6 +15,7 @@
   --type-document: #3a6ea5;
   --type-sheet: #178066;
   --type-checklist: #8f5f16;
+  --type-link: #6b4fa0;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -113,6 +114,17 @@ select { padding-right: 36px; }
   font-size: 1.15rem;
 }
 .project-title:hover { text-decoration: underline dotted; }
+.all-documents-btn {
+  height: 31px;
+  box-sizing: border-box;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0 var(--space-3);
+  background: transparent;
+  color: var(--dominant-ink);
+  border-color: rgba(255,255,255,0.35);
+  white-space: nowrap;
+}
 .layout-switcher { display: flex; gap: var(--space-1); flex-wrap: wrap; }
 .layout-btn {
   height: 31px;
@@ -286,6 +298,59 @@ body:has(#panes) main {
 .pane-close:hover { border-color: var(--danger); color: var(--danger); }
 .pane-body { flex: 1; overflow: auto; padding: var(--space-3); }
 .pane-empty { color: var(--ink-soft); padding: var(--space-3) 0; }
+
+/* ---------- Documents list ---------- */
+.doc-list-view {
+  background: var(--surface);
+  border: 1px solid var(--dominant);
+  border-radius: var(--radius);
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: var(--space-4);
+}
+.doc-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.doc-list-header h2 { margin: 0; }
+.doc-list-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.doc-list-empty { color: var(--ink-soft); }
+.doc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.doc-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: var(--bg);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font-family: var(--font-ui);
+}
+.doc-list-row:hover { border-color: var(--dominant); }
+.doc-list-row-type {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+.doc-list-row-title { flex: 1 1 auto; font-weight: 700; min-width: 0; overflow-wrap: break-word; }
+.doc-list-row-meta { flex: 0 0 auto; color: var(--ink-soft); font-size: 0.8rem; white-space: nowrap; }
+.doc-list-row-external { flex: 0 0 auto; color: var(--ink-soft); font-size: 0.85rem; }
 
 /* ---------- Shared editor toolbar ---------- */
 .editor-toolbar {
